@@ -17,7 +17,7 @@ router.put("/api/workouts/:id", (req, res) => {
     Exercise.create(req.body)
         .then(({ _id }) => Workout.findByIdAndUpdate(
             req.params.id,
-            { $push: { exercises: _id } }, { new: true }))
+            { $push: { exercises: _id, durations: req.body.duration} }, { new: true }))
         .then(updated => { res.json(updated) })
         .catch(err => { res.json(err); });
 });
@@ -27,15 +27,30 @@ router.get("/api/workouts", (req, res) => {
   Workout.aggregate([
       {
         $addFields: { 
-          totalDuration: "$exercises"
+          totalDuration: { $sum: "$durations" }
         }
       }
     ])
     .then(workdata => {
       Workout.populate(workdata, {path: 'exercises'} , 
         (err, workdata) => {
-          console.log(workdata);
-          console.log(workdata[0].exercises);
+          res.json(workdata);
+        })
+    });
+});
+
+// Returns a last 7 workouts
+router.get("/api/workouts/range", (req, res) => {
+  Workout.aggregate([
+      {
+        $addFields: { 
+          totalDuration: { $sum: "$durations" }
+        }
+      }
+    ])
+    .then(workdata => {
+      Workout.populate(workdata, {path: 'exercises'} , 
+        (err, workdata) => {
           res.json(workdata);
         })
     });
@@ -46,13 +61,6 @@ router.get("/api/workouts", (req, res) => {
 //   Workout.find({})
 //     .sort({ date: -1 })
 //     .populate("exercises")
-//     .aggregate([
-//       {
-//         $addFields: { 
-//           totalDuration: { $sum: "$exercises.duration" } 
-//         }
-//       }
-//     ])
 //     .then(workdata => {
 //       res.json(workdata);
 //     })

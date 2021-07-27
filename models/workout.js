@@ -7,9 +7,7 @@ const workoutSchema = new Schema({
     type: Date,
     default: Date.now
   },
-  durations: [
-    
-  ],
+  durations: [Number],
   exercises: [
     {
       type: Schema.Types.ObjectId,
