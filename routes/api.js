@@ -31,6 +31,7 @@ router.get("/api/workouts", (req, res) => {
         }
       }
     ])
+    .sort({ day: 1 })
     .then(workdata => {
       Workout.populate(workdata, {path: 'exercises'} , 
         (err, workdata) => {
@@ -42,18 +43,21 @@ router.get("/api/workouts", (req, res) => {
 // Returns a last 7 workouts
 router.get("/api/workouts/range", (req, res) => {
   Workout.aggregate([
-      {
-        $addFields: { 
-          totalDuration: { $sum: "$durations" }
-        }
+    {
+      $addFields: { 
+        totalDuration: { $sum: "$durations" }
       }
-    ])
-    .then(workdata => {
-      Workout.populate(workdata, {path: 'exercises'} , 
-        (err, workdata) => {
-          res.json(workdata);
-        })
-    });
+    }
+  ])
+  .sort({ day: -1 })
+  .limit(7)
+  .sort({ day: 1 })
+  .then(workdata => {
+    Workout.populate(workdata, {path: 'exercises'} , 
+      (err, workdata) => {
+        res.json(workdata);
+      })
+  });
 });
 
 
